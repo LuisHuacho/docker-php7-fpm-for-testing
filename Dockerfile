@@ -8,11 +8,11 @@ RUN a2enmod rewrite
 
 # Tools for network testing with others containers
 
-RUN apt-get install -y vim nmap lynx
+RUN apt-get install -y vim nmap lynx apt-utils
 
 # Libraries that are required by php extensions
 
-RUN apt-get install -y zlib1g-dev vim libicu-dev libpng-dev libldb-dev libldap2-dev libmcrypt-dev libxml2-dev
+RUN apt-get install -y zlib1g-dev vim libicu-dev libpng-dev libldb-dev libldap2-dev libmcrypt-dev libxml2-dev libpq-dev
 
 RUN apt-get -y install jpegoptim optipng gifsicle libjpeg-dev libfreetype6-dev libgd-dev
 
