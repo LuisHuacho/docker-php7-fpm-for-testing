@@ -2,27 +2,20 @@ FROM php:5.6-apache
 
 MAINTAINER DRINUX SAC "proyectos@drinux.com"
 
-RUN apt-get update
-
 RUN a2enmod rewrite
 
-# Tools for network testing with others containers
+RUN apt-get update && apt-get install -y \
+#    vim nmap lynx apt-utils \
+    zlib1g-dev libicu-dev libpng-dev \
+    libldb-dev libldap2-dev \
+    libmcrypt-dev libxml2-dev libpq-dev \
+    jpegoptim optipng gifsicle libjpeg-dev \
+    libfreetype6-dev libgd-dev \
+    libwebp-dev libjpeg62-turbo-dev libxpm-dev
 
-RUN apt-get install -y vim nmap lynx apt-utils
-
-# Libraries that are required by php extensions
-
-RUN apt-get install -y zlib1g-dev vim libicu-dev libpng-dev libldb-dev libldap2-dev libmcrypt-dev libxml2-dev libpq-dev
-
-RUN apt-get -y install jpegoptim optipng gifsicle libjpeg-dev libfreetype6-dev libgd-dev
-
-RUN apt-get -y install libwebp-dev libjpeg62-turbo-dev libxpm-dev
-
-RUN ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so && ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
-
-RUN pecl install apcu-4.0.11 && docker-php-ext-enable apcu
-
-# PHP Extensions
+RUN ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so && \
+    ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so && \
+    pecl install apcu-4.0.11
 
 RUN docker-php-ext-configure gd \
     --with-gd \
@@ -34,17 +27,9 @@ RUN docker-php-ext-configure gd \
     --with-freetype-dir \
     --enable-gd-native-ttf
 
-RUN docker-php-ext-install gd
-
-RUN docker-php-ext-install pdo pdo_mysql zip intl ldap mcrypt soap
-
-RUN docker-php-ext-install mysqli
-
-RUN docker-php-ext-enable opcache
-
-RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
-
-RUN docker-php-ext-install pdo_pgsql pgsql
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
+    docker-php-ext-install gd pdo pdo_mysql zip intl ldap mcrypt soap mysqli pdo_pgsql pgsql && \
+    docker-php-ext-enable opcache apcu
 
 WORKDIR /usr/local/etc/php/conf.d
 
@@ -58,15 +43,10 @@ COPY appweb.conf 000-default.conf
 
 WORKDIR /var/www/
 
-RUN mkdir log
+RUN mkdir log data && \
+    chown -R www-data:www-data html data && \
+    chmod -R 775 html data
 
-# If Web App requires directory for files upload or processing outside web directory. 
-# Moodle for example with moodledata directory.
-
-RUN mkdir data
-
-RUN chown -R www-data:www-data html data
-
-RUN chmod -R 775 html data
+RUN rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
