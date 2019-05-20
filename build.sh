@@ -1,1 +1,1 @@
-sudo docker build -t 'php56-webapp' .
+sudo docker build -t 'php7-webapp' .

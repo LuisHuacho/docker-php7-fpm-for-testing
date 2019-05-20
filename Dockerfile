@@ -1,8 +1,6 @@
-FROM php:5.6-apache
+FROM php:fpm
 
 MAINTAINER DRINUX SAC "proyectos@drinux.com"
-
-RUN a2enmod rewrite
 
 RUN apt-get update && apt-get install -y \
 #    vim nmap lynx apt-utils \
@@ -11,11 +9,9 @@ RUN apt-get update && apt-get install -y \
     libmcrypt-dev libxml2-dev libpq-dev \
     jpegoptim optipng gifsicle libjpeg-dev \
     libfreetype6-dev libgd-dev \
-    libwebp-dev libjpeg62-turbo-dev libxpm-dev
-
-RUN ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so && \
-    ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so && \
-    pecl install apcu-4.0.11
+    libz-dev libmemcached-dev libmemcached11 libmemcachedutil2 build-essential \
+    libwebp-dev libjpeg62-turbo-dev libxpm-dev \
+    git
 
 RUN docker-php-ext-configure gd \
     --with-gd \
@@ -24,29 +20,17 @@ RUN docker-php-ext-configure gd \
     --with-png-dir \
     --with-zlib-dir \
     --with-xpm-dir \
-    --with-freetype-dir \
-    --enable-gd-native-ttf
-
-RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
-    docker-php-ext-install gd pdo pdo_mysql zip intl ldap mcrypt soap mysqli pdo_pgsql pgsql && \
-    docker-php-ext-enable opcache apcu
+    --with-freetype-dir && \
+    pecl install mcrypt-1.0.2 && \
+    docker-php-ext-enable mcrypt && \
+    docker-php-ext-enable opcache && \
+    docker-php-ext-install gd pdo pdo_mysql intl ldap mbstring soap soap xml mysqli pdo_pgsql ldap pgsql
 
 WORKDIR /usr/local/etc/php/conf.d
-
 COPY app.ini app.ini
-
-WORKDIR /etc/apache2/sites-available
-
-RUN mv 000-default.conf 000-default.conf.backup
-
-COPY appweb.conf 000-default.conf
-
 WORKDIR /var/www/
 
-RUN mkdir log data && \
-    chown -R www-data:www-data html data && \
-    chmod -R 775 html data
-
-RUN rm -rf /var/lib/apt/lists/*
+RUN mkdir log && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
